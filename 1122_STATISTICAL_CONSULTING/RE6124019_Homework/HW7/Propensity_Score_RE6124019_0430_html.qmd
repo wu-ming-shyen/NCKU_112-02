@@ -1,0 +1,315 @@
+---
+title: 'Summary of "A Comparison of 12 Algorithms for Matching on the Propensity Score"'
+author: "RE6124019_吳明軒"
+date: '2024-04-30'
+format: 
+  html:
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: show
+    code-tools: true
+    code-copy: true
+---
+# Introduction
+
+## Steps of dealing with missing data
+1. Understanding the reasons for non-responding
+2. Implemnting effective follow-up procedures
+3. Utilizing imputation techniques
+4. Analyzing patterns of missing data
+5. Sensitivity analysis
+6. Reporting limitations
+
+## Missing Data Patterns
+
+### 1. Univariate Pattern
+- **Description**: Missing values occur on a single item. This item is either completely observed or missing across all observations.
+- **Example**: In a dataset with multiple variables, only one variable, such as 'Age', might have missing values, while all other variables are fully observed.
+
+### 2. Multivariate Pattern
+- **Description**: Missing values occur across a group of items, and these items are either completely observed or missing together.
+- **Example**: If data for 'Blood Pressure' and 'Cholesterol Levels' are missing, they are missing together for some observations but fully observed for others.
+
+### 3. Monotone Pattern
+- **Description**: Items are ordered such that if a particular item (p) is missing, then all subsequent items (p+1 to k) are also missing.
+- **Example**: In longitudinal studies, if a participant misses a follow-up visit (time point p), all subsequent follow-up data (time points p+1 to k) will also be missing.
+
+### 4. Arbitrary Pattern
+- **Description**: Missing data are randomly scattered throughout the dataset without any systematic pattern or order.
+- **Example**: Missing values occur unpredictably across various variables and observations with no discernible pattern.
+
+## Missing Data Mechanisms
+
+### 1. Missing Completely at Random (MCAR)
+- **Definition**: Missing data does not depend on any observed or unobserved data within the dataset.
+- **Example**: Smoking status is randomly missing among male and female patients.
+- **Characteristics**: Handling MCAR is straightforward because the missingness introduces no bias related to the data's observed or missing values.
+
+### 2. Missing at Random (MAR)
+- **Definition**: The missingness of a variable is related to other observed variables in the dataset, but not to the values of the variable itself.
+- **Example**: Smoking status is missing more frequently for female patients but is not dependent on whether the females are smokers or non-smokers.
+- **Characteristics**: MAR requires statistical techniques that use the relationships among variables to handle the missing data.
+
+### 3. Missing Not at Random (MNAR)
+- **Definition**: The probability of a data point being missing is related to its value, representing a systematic loss of information.
+- **Example**: Smoking status is more likely to be missing for female patients who are smokers.
+- **Characteristics**: MNAR is the most challenging to address as it can bias the study results and requires sophisticated statistical methods to manage.
+
+
+## Conventional Methods
+![Conventional Methods](Conventional_Methods.png)
+
+# Imputation Methods
+
+## Single Imputation
+Single imputation involves using a single value to substitute each missing data point in the dataset. Here are the primary types used:
+
+- **Unconditional Means**: Filling in missing values using the mean of the entire dataset.
+- **Unconditional Distributions**: Filling in missing values by drawing randomly from the observed scores.
+- **Conditional Means**: Filling in missing values using predictions from a model, such as a regression model.
+- **Conditional Distributions**: Filling in missing values based on model predictions plus a random error component.
+
+**Advantages**:
+- More efficient than analyzing complete cases.
+- Completed data can be analyzed using standard procedures and software.
+
+**Disadvantages**:
+- Can be challenging to implement, especially in multivariate cases.
+- Standard errors, p-values, and other measures of uncertainty can be misleading as they do not account for the additional uncertainty introduced by missing values.
+
+## Multiple Imputation
+Multiple imputation addresses missing data by repeating the imputation process multiple times to reflect the uncertainty introduced by the imputation. This process typically involves the following assumptions:
+
+- **Missing data should be at least Missing at Random (MAR)**.
+- **The missingness of the data is related only to observed values; missing values are independent and do not influence each other**.
+- **Data follows a multivariate normal distribution or approaches normality asymptotically**.
+
+**Steps**:
+
+1. Impute missing data multiple times, generating several complete datasets.
+2. Analyze each dataset to obtain estimates of the parameters.
+3. Use the variation across completed data sets to capture the additional uncertainty due to imputation.
+4. Combine estimates, standard errors, test statistics, etc., to form a single inference.
+
+**Advantages**:
+- When correctly applied, produces consistent, asymptotically efficient, and asymptotically normal estimates.
+- Applicable to almost any type of data or model, and analysis can be performed using conventional software.
+
+**Disadvantages**:
+- Implementation can be cumbersome.
+- Each use of multiple imputation generates different estimates.
+
+
+# Implementation Example
+```{r, error=FALSE, warning=FALSE, message=FALSE}
+library(VIM)
+library(DataExplorer)
+library(mice)
+library(finalfit)
+library(dplyr)
+```
+### Sleep Data
+```{r}
+# Loading and examining sleep data
+data(sleep, package="VIM")
+head(sleep)
+str(sleep)
+
+# Plotting missing data
+DataExplorer::plot_missing(sleep)
+# Implementing multiple imputation
+imp <- mice(sleep, seed=1234, m=5)
+fit <- with(imp, lm(Dream ~ Span + Gest))
+pooled <- pool(fit)
+
+# Displaying the results
+summary(pooled)
+DataExplorer::plot_missing(complete(imp))
+```
+
+# Case Study
+
+Most materials were adopted from https://argoshare.is.ed.ac.uk/healthyr_book/chap11-
+h1.html
+```{r}
+# Load and examine the colon_s dataset
+dim(colon_s) # Display dimensions of the dataset
+DataExplorer::plot_missing(colon_s) # Visualize missing data in the dataset
+str(colon_s) # Display the structure of the dataset
+
+# Set seed for reproducibility
+set.seed(1)
+
+# Manipulate the dataset to introduce additional missing data
+colon_s <- colon_s %>%
+  mutate(
+    # Introducing missing data for 'smoking' completely at random
+    smoking_mcar = sample(c("Smoker", "Non-smoker", NA), n(), replace = TRUE,
+                          prob = c(0.2, 0.7, 0.1)) %>%
+      factor() %>%
+      ff_label("Smoking (MCAR)"),
+
+    # Introducing missing data for 'smoking' conditional on patient sex
+    smoking_mar = ifelse(sex.factor == "Female",
+                         sample(c("Smoker", "Non-smoker", NA),
+                                sum(sex.factor == "Female"), replace = TRUE,
+                                prob = c(0.1, 0.5, 0.4)),
+                         sample(c("Smoker", "Non-smoker", NA),
+                                sum(sex.factor == "Male"), replace = TRUE,
+                                prob = c(0.15, 0.75, 0.1))) %>%
+      factor() %>%
+      ff_label("Smoking (MAR)")
+  )
+
+# Display the updated dimensions of the dataset to check for changes
+dim(colon_s) # Chemotherapy for Stage B/C colon cancer
+
+# Re-visualize missing data in the modified dataset
+DataExplorer::plot_missing(colon_s)
+
+# Use the ff_glimpse() function to examine the variables of interest.
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor",
+"smoking_mcar", "smoking_mar")
+dependent <- "mort_5yr"
+
+colon_s %>%
+ff_glimpse(dependent, explanatory)
+
+# Missing values map
+colon_s %>%
+finalfit::missing_plot(dependent, explanatory)
+
+# Look for ptterns of missingness
+colon_s %>%
+finalfit::missing_pattern(dependent, explanatory)
+
+# Including missing data in demographics tables
+table1 <- colon_s %>%
+  summary_factorlist(
+    dependent = dependent,
+    explanatory = explanatory,
+    na_include = TRUE,
+    na_include_dependent = TRUE,
+    total_col = TRUE,
+    add_col_totals = TRUE,
+    p = TRUE,
+    p_cont_para = "aov",
+    p_cat = "chisq"
+  )
+
+knitr::kable(
+  table1,
+  caption = "Simulated missing completely at random (MCAR) and missing at random (MAR) dataset."
+)
+
+# check for associations bewtwwen missing and observed data
+dependent <- "mort_5yr"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor", "smoking_mcar", "smoking_mar")
+colon_s %>%
+  missing_pairs(
+    dependent = dependent,
+    explanatory = explanatory,
+    title = "Missing data matrix",
+    use_labels = FALSE,
+    showYAxisPlotLabels = FALSE
+  )
+
+# MCAR
+dependent <- "smoking_mcar"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor")
+
+missing_mcar <- colon_s %>%
+  missing_compare(
+    dependent = dependent,
+    explanatory = explanatory
+  )
+
+knitr::kable(missing_mcar)
+
+# MAR
+dependent <- "smoking_mar"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor")
+
+missing_mar <- colon_s %>%
+  missing_compare(
+    dependent = dependent,
+    explanatory = explanatory
+  )
+
+knitr::kable(missing_mar)
+
+dependent <- "mort_5yr"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor", "smoking_mcar")
+
+fit <- colon_s %>%
+  finalfit(dependent, explanatory)
+
+knitr::kable(fit, caption = "Regression analysis with missing data: List-wise deletion")
+
+dependent <- "mort_5yr"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor", "smoking_mar")
+
+fit_explicit_na <- colon_s %>%
+  mutate(smoking_mar = forcats::fct_na_value_to_level(smoking_mar)) %>%
+  finalfit(dependent, explanatory)
+
+knitr::kable(fit_explicit_na, row.names = FALSE)
+
+
+# Multivariate Imputation
+dependent <- "mort_5yr"
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor", "smoking_mar")
+colon_s %>%
+  select(dependent, explanatory) %>%
+  missing_predictorMatrix(drop_from_imputed = c("mort_5yr")) -> predM
+
+fits <- colon_s %>%
+  select(dependent, explanatory) %>%
+  mice(m = 10, predictorMatrix = predM) %>% # Run imputation with 10 imputed sets
+  with(glm(formula(ff_formula(dependent, explanatory)),
+          family = "binomial")) # Run logistic regression on each imputed set
+
+# AICs
+fits %>%
+  getfit() %>%
+  purrr::map(AIC) %>%
+  unlist() %>%
+  mean()
+
+# Pool results
+fits_pool <- fits %>%
+  pool()
+knitr::kable(fits_pool$pooled)
+
+colon_s %>%
+  or_plot(dependent, explanatory, glmfit = fits_pool, table_text_size=4)
+
+fit_imputed <- fits_pool %>%
+  fit2df(estimate_name = "OR (multiple imputation)", exp = TRUE)
+
+explanatory <- c("age", "sex.factor", "nodes", "obstruct.factor", "smoking_mar")
+table_uni_multi <- colon_s %>%
+  finalfit(dependent, explanatory, keep_fit_id = TRUE)
+
+explanatory = c("age", "sex.factor", "nodes", "obstruct.factor")
+fit_multi_no_smoking <- colon_s %>%
+  glmmulti(dependent, explanatory) %>%
+  fit2df(estimate_suffix = " (multivariable without smoking)")
+
+# Combine to final table
+table_imputed <-
+table_uni_multi %>%
+  ff_merge(fit_multi_no_smoking) %>%
+  ff_merge(fit_imputed, last_merge = TRUE)
+knitr::kable(table_imputed, row.names = FALSE)
+
+```
+
+# Summary
+The document "Introduction to Missing Data" provides an extensive overview of techniques to address missing data in statistical analysis. It explains the nature of missing data and its impact on analysis, explores conventional methods like case deletion and weighting, and discusses single and multiple imputation techniques. Single imputation methods, which replace missing values with a single estimate, are contrasted with multiple imputation approaches that create several datasets for robust statistical inference. The document also includes practical applications through a case study, demonstrating how these methods can be implemented in real-world data analysis to manage the challenges posed by missing data effectively.
+
+# References
+1. ChatGPT4

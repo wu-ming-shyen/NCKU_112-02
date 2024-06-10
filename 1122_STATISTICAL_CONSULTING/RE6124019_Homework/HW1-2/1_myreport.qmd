@@ -1,0 +1,53 @@
+---
+title: "My Report"
+date: today
+author: Chung-I LI
+format:
+ pdf:
+    include-in-header:
+      - text: |
+         \usepackage{setspace,relsize}
+mainfont: "Microsoft JhengHei UI"
+toc: true
+---
+
+# Statistical Thinking
+
+Reference: https://www.fharrell.com/post/rflow/
+
+# Summary Staistic  
+
+```{r}
+#| output: asis
+library(Hmisc)
+latex(describe(mtcars), file = "", caption.placement = "top")
+```
+
+中文
+
+# Table 1  
+
+```{r}
+#| warning: false
+library(table1)
+str(mtcars)
+Mymtcars <- mtcars
+Mymtcars$vs <- as.factor(Mymtcars$vs)
+str(Mymtcars)
+table1(~ wt+hp+vs| am, data=Mymtcars)
+# help(table1)
+```
+
+# Missing Values
+
+```{r}
+#| output: asis
+library(Hmisc)
+library(DataExplorer)
+latex(describe(airquality), file = "", caption.placement = "top")
+```
+
+```{r}
+plot_missing(airquality)
+```
+

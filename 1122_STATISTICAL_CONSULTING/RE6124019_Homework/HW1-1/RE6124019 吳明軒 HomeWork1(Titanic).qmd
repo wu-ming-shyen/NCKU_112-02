@@ -1,0 +1,111 @@
+---
+title: "RE6124019 吳明軒 HomeWork1(Titanic)"
+format: pdf
+---
+
+## Import Package
+```{r}
+library(ggplot2) #Plot
+library(titanic) #Dataset
+```
+
+## Load Dataset
+```{r}
+train <- titanic_train
+test <- titanic_test
+
+str(train)
+str(test)
+```
+
+## Exploratory Data Analysis (EDA)
+```{r}
+
+#Type
+sapply(train, class)
+sapply(test, class)
+
+#Missing Value
+sum(is.na(train))
+sum(is.na(test))
+
+#Duplicate Value
+sum(duplicated(train))
+sum(duplicated(test))
+
+#Summary
+summary(train)
+summary(test)
+```
+
+## Data Analysis (Every Variable)
+```{r}
+
+#Survived
+table(train$Survived)
+
+#Pclass
+table(train$Pclass)
+table(test$Pclass)
+
+#Sex
+table(train$Sex)
+table(test$Sex)
+
+#Age
+hist(train$Age)
+hist(test$Age)
+
+#SibSp
+table(train$SibSp)
+table(test$SibSp)
+
+#Parch
+table(train$Parch)
+table(test$Parch)
+
+#Fare
+hist(train$Fare)
+hist(test$Fare)
+
+#Embarked
+table(train$Embarked)
+table(test$Embarked)
+
+```
+
+## Plot (GGPLOT2)
+```{r}
+#Survived
+ggplot(train, aes(Survived)) + geom_bar()
+
+#Pclass
+ggplot(train, aes(Pclass)) + geom_bar()
+ggplot(test, aes(Pclass)) + geom_bar()
+
+#Sex
+ggplot(train, aes(Sex)) + geom_bar()
+ggplot(test, aes(Sex)) + geom_bar()
+
+#Age
+ggplot(train, aes(Age)) + geom_histogram()
+ggplot(test, aes(Age)) + geom_histogram()
+
+#SibSp
+ggplot(train, aes(SibSp)) + geom_bar()
+ggplot(test, aes(SibSp)) + geom_bar()
+
+
+#Parch
+ggplot(train, aes(Parch)) + geom_bar()
+ggplot(test, aes(Parch)) + geom_bar()
+
+#Fare
+ggplot(train, aes(Fare)) + geom_histogram()
+ggplot(test, aes(Fare)) + geom_histogram()
+
+#Embarked
+ggplot(train, aes(Embarked)) + geom_bar()
+ggplot(test, aes(Embarked)) + geom_bar()
+
+```

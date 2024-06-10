@@ -1,0 +1,45 @@
+---
+title: 'Summary of "A Comparison of 12 Algorithms for Matching on the Propensity Score"'
+author: "RE6124019_吳明軒"
+date: '2024-04-30'
+format:
+  pdf:
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    fontsize: 12pt
+    include-in-header:
+      - text: |
+          \usepackage{fontspec}
+          \usepackage{xeCJK}
+          \setCJKmainfont{Microsoft JhengHei}
+          \XeTeXlinebreaklocale "zh"
+          \usepackage{setspace,relsize}
+---
+
+# Paper Information
+
+- **Title:** A Comparison of 12 Algorithms for Matching on the Propensity Score
+- **Author:** Peter C. Austin
+- **Year:** 2014
+- **Journal:** Statistics in Medicine
+- **Volume and Issue:** Volume 33, Pages 1057–1069
+- **DOI:** 10.1002/sim.6004
+
+# Vocabulary
+
+- **Propensity Score Matching (PSM):** A statistical technique used to estimate the effect of a treatment by accounting for covariates that predict receiving the treatment.
+- **Caliper Width:** The maximum allowable difference in propensity scores within which matches are considered acceptable.
+- **Monte Carlo Simulations:** A broad class of computational algorithms that rely on repeated random sampling to obtain numerical results.
+- **Bias:** The difference between the expected (or average) estimation of a statistical parameter and the true value.
+- **Mean Squared Error (MSE):** The average of the squares of the errors—that is, the average squared difference between the estimated values and what is estimated.
+
+# Summary
+
+This paper evaluates twelve different algorithms for propensity score matching, assessing their performance in terms of bias, variance, mean squared error (MSE), and balance on baseline covariates. The study employs Monte Carlo simulations across various scenarios to compare these algorithms, which include optimal matching, various forms of greedy nearest neighbor matching (both with and without replacement, and within specified caliper widths), and caliper matching. The results suggest that caliper matching, especially within narrow calipers, tends to produce less biased estimates of treatment effects compared to other methods. However, the choice between caliper matching and other methods like nearest neighbor matching involves a trade-off between bias and variance. The study concludes that nearest neighbor caliper matching without replacement generally provides a good balance between bias and variance, making it a preferable choice in many practical scenarios.
+
+# References
+
+1. Austin, P.C. (2014). A comparison of 12 algorithms for matching on the propensity score. *Statistics in Medicine*, 33, 1057–1069. DOI: 10.1002/sim.6004
+2. ChatGPT4
