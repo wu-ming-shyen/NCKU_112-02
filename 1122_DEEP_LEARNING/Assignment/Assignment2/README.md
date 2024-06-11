@@ -21,7 +21,7 @@ please copy the dataset to the same folder with the code
 
 
 ## GitHub Repository (50%)
-[Please read the Report in pdf](https://github.com/wu-ming-shyen/NCKU_112-02/tree/main/1122_DEEP_LEARNING/Assignment/Assignment2)
+[Please read the Report in pdf](https://github.com/wu-ming-shyen/NCKU_112-02/blob/main/1122_DEEP_LEARNING/Assignment/Assignment2/DL_HW2_RE6124019.pdf)
 
 ## Report (50%)
 DL_HW2_RE6124019.pdf
